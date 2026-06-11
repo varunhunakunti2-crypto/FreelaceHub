@@ -2,6 +2,7 @@ import React from 'react';
 import { createServerClient } from '@/lib/supabase/server';
 import { Search, User, Briefcase, MapPin, Tag } from 'lucide-react';
 import Link from 'next/link';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface SearchPageProps {
   searchParams: { q?: string };
@@ -96,9 +97,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center bg-gray-50 rounded-xl border-2 border-dashed">
-              <p className="text-gray-500">No projects match your search.</p>
-            </div>
+            <EmptyState
+              icon={Search}
+              title="No projects found"
+              description="Try modifying your search terms or removing filters to discover projects."
+            />
           )}
         </div>
 
@@ -142,9 +145,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center bg-gray-50 rounded-xl border-2 border-dashed">
-              <p className="text-gray-500 text-sm">No profiles found.</p>
-            </div>
+            <EmptyState
+              icon={User}
+              title="No profiles found"
+              description="No freelancers or clients matched your search. Try broadening your search terms."
+            />
           )}
         </div>
       </div>
