@@ -1,6 +1,8 @@
 import { createRouteClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { startOfMonth, subMonths, format, isAfter } from 'date-fns';
+import { startOfMonth, subMonths, addMonths, format } from 'date-fns';
+
+export const runtime = 'edge';
 
 export async function GET() {
   const supabase = createRouteClient();
@@ -51,7 +53,7 @@ export async function GET() {
       };
     }).reverse();
 
-    paymentsData?.forEach((payment) => {
+    paymentsData?.forEach((payment: any) => {
       const paymentDate = new Date(payment.created_at);
       const monthStr = format(paymentDate, 'MMM');
       const monthData = last6Months.find((m) => m.month === monthStr);
@@ -66,9 +68,11 @@ export async function GET() {
       .select('created_at');
 
     const userGrowth = last6Months.map((m) => {
+      const start = m.timestamp;
+      const end = addMonths(start, 1);
       const count = usersData?.filter((u) => {
         const userDate = new Date(u.created_at);
-        return format(userDate, 'MMM') === m.month && isAfter(userDate, subMonths(m.timestamp, 1));
+        return userDate >= start && userDate < end;
       }).length || 0;
       return {
         month: m.month,
@@ -87,7 +91,10 @@ export async function GET() {
     }, {});
 
     const projectStats = Object.entries(statusCounts || {}).map(([name, value]) => ({
-      name: name.replace('_', ' ').charAt(0).toUpperCase() + name.replace('_', ' ').slice(1),
+      name: name
+        .split(/[_\s]+/)
+        .map((token) => token.charAt(0).toUpperCase() + token.slice(1).toLowerCase())
+        .join(' '),
       value,
     }));
 

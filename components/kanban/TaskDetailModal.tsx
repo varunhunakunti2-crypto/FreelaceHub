@@ -18,7 +18,7 @@ interface TaskDetailModalProps {
 }
 
 export default function TaskDetailModal({ task, onClose, onSuccess }: TaskDetailModalProps) {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [title, setTitle] = useState(task.title);

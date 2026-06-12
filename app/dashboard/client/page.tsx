@@ -6,7 +6,7 @@ import { LayoutDashboard, Briefcase, FileText, Users, Plus } from 'lucide-react'
 import Link from 'next/link';
 
 export default async function ClientDashboardPage() {
-  const supabase = createServerClient();
+  const supabase = createServerClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return null;
@@ -58,7 +58,7 @@ export default async function ClientDashboardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Client Dashboard</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Welcome back, {profile?.full_name || 'User'}! Here's what's happening with your projects.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Welcome back, {profile?.full_name || 'User'}! Here&apos;s what&apos;s happening with your projects.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link 

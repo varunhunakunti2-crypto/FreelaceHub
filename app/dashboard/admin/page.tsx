@@ -11,15 +11,22 @@ import { formatDistanceToNow } from 'date-fns';
 export default function AdminOverview() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchStats() {
       try {
         const res = await fetch('/api/admin/stats');
+        if (!res.ok) {
+          const text = await res.text();
+          setError(text || 'Failed to fetch admin stats');
+          return;
+        }
         const json = await res.json();
         setData(json);
       } catch (error) {
         console.error('Failed to fetch admin stats:', error);
+        setError(error instanceof Error ? error.message : 'Failed to fetch admin stats');
       } finally {
         setLoading(false);
       }
@@ -31,6 +38,15 @@ export default function AdminOverview() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 rounded-xl bg-red-950 text-red-200">
+        <p className="text-lg font-semibold">Unable to load admin stats</p>
+        <p className="mt-2 text-sm text-red-300">{error}</p>
       </div>
     );
   }
@@ -94,27 +110,32 @@ export default function AdminOverview() {
         <div className="lg:col-span-2 bg-gray-800 p-6 rounded-xl border border-gray-700">
           <h2 className="text-xl font-semibold text-white mb-6">Recent Activity</h2>
           <div className="space-y-4">
-            {data.recentActivity.map((activity: any) => (
-              <div
-                key={activity.id}
-                className="flex items-start justify-between p-4 bg-gray-900 rounded-lg hover:bg-gray-850 transition-colors"
-              >
-                <div className="flex gap-4">
-                  <div className="bg-blue-500/10 p-2 rounded-lg">
-                    <Activity className="h-5 w-5 text-blue-500" />
+            {(Array.isArray(data.recentActivity) ? data.recentActivity : []).map((activity: any) => {
+              const activityDate = new Date(activity.timestamp);
+              const timeText = !Number.isNaN(activityDate.getTime())
+                ? formatDistanceToNow(activityDate, { addSuffix: true })
+                : 'unknown time';
+
+              return (
+                <div
+                  key={activity.id}
+                  className="flex items-start justify-between p-4 bg-gray-900 rounded-lg hover:bg-gray-850 transition-colors"
+                >
+                  <div className="flex gap-4">
+                    <div className="bg-blue-500/10 p-2 rounded-lg">
+                      <Activity className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-gray-200 font-medium">{activity.message}</p>
+                      <p className="text-sm text-gray-400">{timeText}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-200 font-medium">{activity.message}</p>
-                    <p className="text-sm text-gray-400">
-                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-                    </p>
-                  </div>
+                  <button className="text-gray-400 hover:text-white">
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
                 </div>
-                <button className="text-gray-400 hover:text-white">
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

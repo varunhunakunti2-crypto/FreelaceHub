@@ -9,7 +9,7 @@ export default async function InvoicePage({
 }: {
   params: { id: string };
 }) {
-  const supabase = createServerClient();
+  const supabase = createServerClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

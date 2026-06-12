@@ -1,25 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { Search, Filter, MoreVertical, Shield, User, UserMinus, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
+import Image from 'next/image';
 
 export default function UsersManagement() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const supabase = createClientComponentClient<Database>();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  async function fetchUsers() {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
@@ -28,11 +26,16 @@ export default function UsersManagement() {
 
     if (error) {
       console.error('Error fetching users:', error);
+      setError(error.message);
     } else {
       setUsers(data || []);
     }
     setLoading(false);
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -82,7 +85,16 @@ export default function UsersManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {loading ? (
+              {error ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12">
+                    <div className="p-6 rounded-xl bg-red-950 text-red-200">
+                      <p className="text-lg font-semibold">Failed to load users</p>
+                      <p className="mt-2 text-sm text-red-300">{error}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : loading ? (
                 <LoadingSkeleton variant="table-row" count={5} />
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (

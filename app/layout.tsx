@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: "The all-in-one platform for freelancers and clients.",
 };
 
+export const runtime = 'edge';
+
 export default function RootLayout({
   children,
 }: {

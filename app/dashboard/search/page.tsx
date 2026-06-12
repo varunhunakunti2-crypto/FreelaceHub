@@ -35,7 +35,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Search Results</h1>
           <p className="text-gray-500">
-            Showing results for <span className="font-medium text-gray-900">"{query}"</span>
+            Showing results for <span className="font-medium text-gray-900">&quot;{query}&quot;</span>
           </p>
         </div>
       </div>

@@ -91,7 +91,7 @@ export default async function MyProposalsPage() {
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No proposals yet</h3>
             <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-              You haven't submitted any proposals yet. Browse projects to find your first opportunity!
+              You haven&apos;t submitted any proposals yet. Browse projects to find your first opportunity!
             </p>
             <div className="mt-6">
               <Link 

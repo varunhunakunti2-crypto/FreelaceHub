@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import AuthCard from '@/components/auth/AuthCard';
@@ -11,14 +11,30 @@ export default function UpdatePasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
   
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d\W]).{8,}$/;
+    if (!passwordStrengthRegex.test(password)) {
+      setError('Password must be at least 8 characters and include uppercase, lowercase, and a number or symbol.');
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -34,7 +50,7 @@ export default function UpdatePasswordPage() {
       if (updateError) throw updateError;
 
       setSuccess(true);
-      setTimeout(() => {
+      timeoutRef.current = window.setTimeout(() => {
         router.push('/login');
       }, 3000);
     } catch (err: any) {

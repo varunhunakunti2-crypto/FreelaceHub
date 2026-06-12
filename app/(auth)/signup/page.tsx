@@ -57,10 +57,11 @@ export default function SignupPage() {
             role: role,
             is_active: true,
             updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
+          } as any, { onConflict: 'id' });
         
         if (profileError) {
           setError('Account created but profile setup failed: ' + profileError.message);
+          setLoading(false);
           return;
         }
       }
@@ -104,7 +105,7 @@ export default function SignupPage() {
             href="/login"
             className="inline-block font-medium text-blue-600 hover:text-blue-500"
           >
-            Click here if you aren't redirected
+            Click here if you aren&apos;t redirected
           </Link>
         </div>
       </AuthCard>

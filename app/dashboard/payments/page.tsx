@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   CreditCard, 
   Plus, 
@@ -37,13 +37,9 @@ export default function PaymentsPage() {
   const [newCard, setNewCard] = useState({ number: '', expiry: '', cvv: '', name: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
-  useEffect(() => {
-    fetchPaymentData();
-  }, []);
-
-  const fetchPaymentData = async () => {
+  const fetchPaymentData = useCallback(async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -57,7 +53,7 @@ export default function PaymentsPage() {
         .order('created_at', { ascending: false });
 
       if (paymentsData) {
-        setTransactions(paymentsData.map(p => ({
+        setTransactions(paymentsData.map((p: any) => ({
           id: p.id,
           date: p.created_at,
           amount: Number(p.amount),
@@ -68,8 +64,8 @@ export default function PaymentsPage() {
 
         // Calculate stats
         const earned = paymentsData
-          .filter(p => p.freelancer_id === user.id && p.status === 'completed')
-          .reduce((acc, curr) => acc + Number(curr.amount), 0);
+          .filter((p: any) => p.freelancer_id === user.id && p.status === 'completed')
+          .reduce((acc: any, curr: any) => acc + Number(curr.amount), 0);
         
         setTotalEarned(earned);
         // For demo purposes, we'll set balance to a fraction of earned if no real balance table exists
@@ -85,7 +81,11 @@ export default function PaymentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchPaymentData();
+  }, [fetchPaymentData]);
 
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();

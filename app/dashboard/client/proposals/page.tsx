@@ -5,7 +5,7 @@ import Link from 'next/link';
 import ProposalCard from '@/components/dashboard/ProposalCard';
 
 export default async function ClientProposalsPage() {
-  const supabase = createServerClient();
+  const supabase = createServerClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return null;
@@ -25,8 +25,8 @@ export default async function ClientProposalsPage() {
   }
 
   // Group proposals by status or project if needed, but for now just list them
-  const pendingProposals = proposals?.filter(p => p.status === 'pending') || [];
-  const otherProposals = proposals?.filter(p => p.status !== 'pending') || [];
+  const pendingProposals = proposals?.filter((p: any) => p.status === 'pending') || [];
+  const otherProposals = proposals?.filter((p: any) => p.status !== 'pending') || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

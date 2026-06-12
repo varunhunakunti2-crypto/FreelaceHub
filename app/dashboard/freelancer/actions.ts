@@ -10,7 +10,7 @@ export async function submitProposal(formData: {
   bidAmount: number;
   estimatedDays: number;
 }) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');

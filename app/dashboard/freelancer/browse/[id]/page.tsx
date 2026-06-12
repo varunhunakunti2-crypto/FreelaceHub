@@ -100,7 +100,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
               <div>
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Fixed Budget</p>
                 <p className="text-xl font-black text-slate-900 dark:text-white">
-                  ${project.budget_min.toLocaleString()} - ${project.budget_max.toLocaleString()}
+                  ${project.budget_min ? project.budget_min.toLocaleString() : '0'} - ${project.budget_max ? project.budget_max.toLocaleString() : '0'}
                 </p>
               </div>
               <div>
@@ -142,7 +142,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                   projectId={project.id} 
                   projectTitle={project.title} 
                   hasSubmitted={!!existingProposal}
-                  defaultBid={project.budget_min.toString()}
+                  defaultBid={project.budget_min ? project.budget_min.toString() : '0'}
                 />
               ) : (
                 <div className="w-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 py-4 rounded-2xl font-black text-center cursor-not-allowed">
@@ -168,7 +168,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
               </div>
 
               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic">
-                "{(client as any)?.bio || 'No client bio available.'}"
+                &quot;{(client as any)?.bio || 'No client bio available.'}&quot;
               </p>
 
               <div className="grid grid-cols-2 gap-4">

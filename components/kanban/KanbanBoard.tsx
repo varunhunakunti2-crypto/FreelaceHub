@@ -20,7 +20,7 @@ interface KanbanBoardProps {
 }
 
 export default function KanbanBoard({ contractId, initialColumns, initialTasks }: KanbanBoardProps) {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const [columns, setColumns] = useState<KanbanColumnType[]>(initialColumns);
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [loading, setLoading] = useState(false);

@@ -1,11 +1,13 @@
-# build output
-dist/
-
-# generated types
-.astro/
-
 # dependencies
 node_modules/
+
+# next.js build output
+.next/
+out/
+dist/
+
+# vercel
+.vercel/
 
 # logs
 npm-debug.log*
@@ -15,10 +17,23 @@ pnpm-debug.log*
 
 # environment variables
 .env
+.env.local
 .env.production
+.env.development
+.env.test
 
 # macOS-specific files
 .DS_Store
 
 # jetbrains setting folder
 .idea/
+
+# vscode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# typescript build info
+*.tsbuildinfo
+next-env.d.ts

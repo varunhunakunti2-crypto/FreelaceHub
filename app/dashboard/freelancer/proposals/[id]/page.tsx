@@ -133,7 +133,7 @@ export default function ProposalDetailPage() {
                 <h2 className="text-xl font-bold">Message from Client</h2>
               </div>
               <p className="text-emerald-800 dark:text-emerald-200 font-medium leading-relaxed">
-                "{proposal.clientMessage}"
+                &quot;{proposal.clientMessage}&quot;
               </p>
               {proposal.status === 'Shortlisted' && (
                 <button className="w-full mt-4 bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 active:scale-[0.98] transition-all">

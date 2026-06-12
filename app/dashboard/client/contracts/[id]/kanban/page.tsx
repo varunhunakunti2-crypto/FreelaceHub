@@ -9,7 +9,7 @@ interface KanbanPageProps {
 }
 
 export default async function KanbanPage({ params }: KanbanPageProps) {
-  const supabase = createServerClient();
+  const supabase = createServerClient() as any;
   const { id: contractId } = params;
 
   // 1. Fetch Contract & verify access
@@ -37,6 +37,8 @@ export default async function KanbanPage({ params }: KanbanPageProps) {
     console.error('Error fetching columns:', columnsError);
   }
 
+  let createColumnsErrorMessage: string | null = null;
+
   // 3. If no columns, create default ones
   if (!columns || columns.length === 0) {
     const defaultColumns = [
@@ -53,6 +55,7 @@ export default async function KanbanPage({ params }: KanbanPageProps) {
 
     if (createError) {
       console.error('Error creating default columns:', createError);
+      createColumnsErrorMessage = 'Failed to create default columns. Please retry.';
     } else {
       columns = createdColumns;
     }
@@ -70,11 +73,26 @@ export default async function KanbanPage({ params }: KanbanPageProps) {
   }
 
   return (
-    <div className="p-6 h-[calc(100vh-80px)] overflow-hidden">
-      <KanbanBoard 
-        contractId={contractId} 
-        initialColumns={columns || []} 
-        initialTasks={tasks || []} 
+    <div className="p-6 h-[calc(100vh-80px)] overflow-hidden space-y-4">
+      {createColumnsErrorMessage ? (
+        <div className="rounded-xl border border-red-500 bg-red-950/80 p-4 text-sm text-red-200">
+          <p className="font-semibold">Failed to create default columns</p>
+          <p className="mt-1">{createColumnsErrorMessage}</p>
+          <div className="mt-3">
+            <a
+              href=""
+              className="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-500"
+            >
+              Retry
+            </a>
+          </div>
+        </div>
+      ) : null}
+
+      <KanbanBoard
+        contractId={contractId}
+        initialColumns={columns || []}
+        initialTasks={tasks || []}
       />
     </div>
   );

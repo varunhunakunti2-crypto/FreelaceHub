@@ -179,7 +179,7 @@ export default function CommandCenter() {
                </div>
                <div className="space-y-1">
                  <p className="font-black text-slate-900 dark:text-white">No results found</p>
-                 <p className="text-sm text-slate-400 font-medium">Try searching for "Messages" or "Dashboard"</p>
+                 <p className="text-sm text-slate-400 font-medium">Try searching for &quot;Messages&quot; or &quot;Dashboard&quot;</p>
                </div>
             </div>
           )}

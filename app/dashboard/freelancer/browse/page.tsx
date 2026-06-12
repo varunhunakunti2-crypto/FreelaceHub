@@ -146,7 +146,7 @@ export default async function BrowseProjectsPage({
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No projects found</h3>
               <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                We couldn't find any projects matching your current filters. Try adjusting your search.
+                We couldn&apos;t find any projects matching your current filters. Try adjusting your search.
               </p>
             </div>
           )}

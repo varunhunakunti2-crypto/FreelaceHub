@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { Search, Filter, ExternalLink, Calendar, DollarSign, Tag, Briefcase } from 'lucide-react';
@@ -9,18 +9,18 @@ import Link from 'next/link';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 
+type ProjectRow = Database['public']['Tables']['projects']['Row'] & {
+  profiles?: { full_name: string | null };
+};
+
 export default function ProjectsManagement() {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const supabase = createClientComponentClient<Database>();
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  async function fetchProjects() {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('projects')
@@ -30,15 +30,19 @@ export default function ProjectsManagement() {
     if (error) {
       console.error('Error fetching projects:', error);
     } else {
-      setProjects(data || []);
+      setProjects((data as any) || []);
     }
     setLoading(false);
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (project.title ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (project.description ?? '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -116,7 +120,7 @@ export default function ProjectsManagement() {
                       {project.profiles?.full_name || 'Anonymous'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-300">
-                      ${project.budget_min?.toLocaleString()} - ${project.budget_max?.toLocaleString()}
+                      ${project.budget_min == null ? '—' : project.budget_min.toLocaleString()} - ${project.budget_max == null ? '—' : project.budget_max.toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
                       <span

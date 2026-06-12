@@ -17,7 +17,7 @@ interface AddTaskModalProps {
 }
 
 export default function AddTaskModal({ contractId, columnId, columnTitle, onClose, onSuccess }: AddTaskModalProps) {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

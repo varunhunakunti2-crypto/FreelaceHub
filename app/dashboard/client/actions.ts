@@ -4,9 +4,10 @@ import { createActionClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createNotification } from '@/lib/notifications';
+import type { Database } from '@/types/database';
 
 export async function createProject(formData: FormData) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');
@@ -14,15 +15,35 @@ export async function createProject(formData: FormData) {
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
   const category = formData.get('category') as string;
-  const budget_min = parseFloat(formData.get('budget_min') as string);
-  const budget_max = parseFloat(formData.get('budget_max') as string);
-  const deadline = formData.get('deadline') as string;
+  const budgetMinValue = formData.get('budget_min');
+  const budgetMaxValue = formData.get('budget_max');
+  const deadlineValue = formData.get('deadline');
   const skills_required = (formData.get('skills_required') as string)
     ?.split(',')
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const { data, error } = await (supabase
+  if (typeof budgetMinValue !== 'string' || budgetMinValue.trim() === '' || Number.isNaN(Number(budgetMinValue))) {
+    return { error: 'Invalid minimum budget' };
+  }
+
+  if (typeof budgetMaxValue !== 'string' || budgetMaxValue.trim() === '' || Number.isNaN(Number(budgetMaxValue))) {
+    return { error: 'Invalid maximum budget' };
+  }
+
+  const budget_min = Number(budgetMinValue);
+  const budget_max = Number(budgetMaxValue);
+
+  let deadline: string | null = null;
+  if (typeof deadlineValue === 'string' && deadlineValue.trim() !== '') {
+    const parsedDeadline = new Date(deadlineValue);
+    if (Number.isNaN(parsedDeadline.getTime())) {
+      return { error: 'Invalid deadline' };
+    }
+    deadline = parsedDeadline.toISOString();
+  }
+
+  const { data, error } = await supabase
     .from('projects')
     .insert({
       client_id: user.id,
@@ -31,12 +52,12 @@ export async function createProject(formData: FormData) {
       category,
       budget_min,
       budget_max,
-      deadline: deadline ? new Date(deadline).toISOString() : null,
+      deadline,
       skills_required,
       status: 'open',
     })
     .select()
-    .single() as any);
+    .single();
 
   if (error) {
     console.error('Error creating project:', error);
@@ -60,7 +81,7 @@ export async function createProject(formData: FormData) {
       .eq('role', 'freelancer');
 
     if (freelancers && freelancers.length > 0) {
-      const freelancerNotifications = freelancers.map(f => ({
+      const freelancerNotifications = freelancers.map((f: any) => ({
         user_id: f.id,
         type: 'project_posted',
         title: 'New Project Posted!',
@@ -80,7 +101,7 @@ export async function createProject(formData: FormData) {
 }
 
 export async function updateProject(projectId: string, formData: FormData) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');
@@ -88,15 +109,35 @@ export async function updateProject(projectId: string, formData: FormData) {
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
   const category = formData.get('category') as string;
-  const budget_min = parseFloat(formData.get('budget_min') as string);
-  const budget_max = parseFloat(formData.get('budget_max') as string);
-  const deadline = formData.get('deadline') as string;
+  const budgetMinValue = formData.get('budget_min');
+  const budgetMaxValue = formData.get('budget_max');
+  const deadlineValue = formData.get('deadline');
   const skills_required = (formData.get('skills_required') as string)
     ?.split(',')
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const { error } = await (supabase
+  if (typeof budgetMinValue !== 'string' || budgetMinValue.trim() === '' || Number.isNaN(Number(budgetMinValue))) {
+    return { error: 'Invalid minimum budget' };
+  }
+
+  if (typeof budgetMaxValue !== 'string' || budgetMaxValue.trim() === '' || Number.isNaN(Number(budgetMaxValue))) {
+    return { error: 'Invalid maximum budget' };
+  }
+
+  const budget_min = Number(budgetMinValue);
+  const budget_max = Number(budgetMaxValue);
+
+  let deadline: string | null = null;
+  if (typeof deadlineValue === 'string' && deadlineValue.trim() !== '') {
+    const parsedDeadline = new Date(deadlineValue);
+    if (Number.isNaN(parsedDeadline.getTime())) {
+      return { error: 'Invalid deadline' };
+    }
+    deadline = parsedDeadline.toISOString();
+  }
+
+  const { error } = await supabase
     .from('projects')
     .update({
       title,
@@ -104,11 +145,11 @@ export async function updateProject(projectId: string, formData: FormData) {
       category,
       budget_min,
       budget_max,
-      deadline: deadline ? new Date(deadline).toISOString() : null,
+      deadline,
       skills_required,
-    } as any)
+    })
     .eq('id', projectId)
-    .eq('client_id', user.id) as any);
+    .eq('client_id', user.id);
 
   if (error) {
     console.error('Error updating project:', error);
@@ -121,7 +162,7 @@ export async function updateProject(projectId: string, formData: FormData) {
 }
 
 export async function deleteProject(projectId: string) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');
@@ -141,17 +182,25 @@ export async function deleteProject(projectId: string) {
   redirect('/dashboard/client/projects');
 }
 
+const ALLOWED_PROJECT_STATUSES = ['open', 'in_progress', 'completed', 'cancelled'] as const;
+
+type ProjectStatus = (typeof ALLOWED_PROJECT_STATUSES)[number];
+
 export async function updateProjectStatus(projectId: string, status: string) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');
 
-  const { error } = await (supabase
+  if (!ALLOWED_PROJECT_STATUSES.includes(status as ProjectStatus)) {
+    throw new Error('Invalid status');
+  }
+
+  const { error } = await supabase
     .from('projects')
-    .update({ status } as any)
+    .update({ status: status as ProjectStatus })
     .eq('id', projectId)
-    .eq('client_id', user.id) as any);
+    .eq('client_id', user.id);
 
   if (error) {
     console.error('Error updating project status:', error);
@@ -164,14 +213,25 @@ export async function updateProjectStatus(projectId: string, status: string) {
 }
 
 export async function updateProfileAvatar(avatarUrl: string) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');
 
+  let avatarUrlValue: string;
+  try {
+    const parsedUrl = new URL(avatarUrl);
+    if (parsedUrl.protocol !== 'https:') {
+      throw new Error('Avatar URL must use https');
+    }
+    avatarUrlValue = parsedUrl.toString();
+  } catch {
+    throw new Error('Invalid avatar URL');
+  }
+
   const { error } = await supabase
     .from('profiles')
-    .update({ avatar_url: avatarUrl } as any)
+    .update({ avatar_url: avatarUrlValue })
     .eq('id', user.id);
 
   if (error) {
@@ -184,43 +244,47 @@ export async function updateProfileAvatar(avatarUrl: string) {
 }
 
 export async function acceptProposal(proposalId: string, projectId: string) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');
 
   // 1. Get proposal details
-  const { data: proposal, error: proposalError } = await (supabase
+  const { data: proposal, error: proposalError } = await supabase
     .from('proposals')
-    .select('*, projects(title)')
+    .select('*, projects(client_id, title)')
     .eq('id', proposalId)
-    .single() as any);
+    .single();
 
   if (proposalError || !proposal) {
     throw new Error('Proposal not found');
   }
 
+  if (proposal.project_id !== projectId || proposal.projects?.client_id !== user.id) {
+    throw new Error('Not authorized');
+  }
+
   const projectTitle = proposal.projects?.title || 'the project';
 
-  // 2. Start transaction (sequential calls in this case, or use RPC for real transaction)
-  // Update proposal status
-  const { error: updateProposalError } = await (supabase
+  // 2. Start transaction-like updates with compensation
+  const { error: updateProposalError } = await supabase
     .from('proposals')
-    .update({ status: 'accepted' } as any)
-    .eq('id', proposalId) as any);
+    .update({ status: 'accepted' })
+    .eq('id', proposalId);
 
   if (updateProposalError) throw updateProposalError;
 
-  // Update project status
-  const { error: updateProjectError } = await (supabase
+  const { error: updateProjectError } = await supabase
     .from('projects')
-    .update({ status: 'in_progress' } as any)
-    .eq('id', projectId) as any);
+    .update({ status: 'in_progress' })
+    .eq('id', projectId);
 
-  if (updateProjectError) throw updateProjectError;
+  if (updateProjectError) {
+    await supabase.from('proposals').update({ status: 'pending' }).eq('id', proposalId);
+    throw updateProjectError;
+  }
 
-  // Create contract
-  const { error: contractError } = await (supabase
+  const { error: contractError } = await supabase
     .from('contracts')
     .insert({
       project_id: projectId,
@@ -229,9 +293,13 @@ export async function acceptProposal(proposalId: string, projectId: string) {
       proposal_id: proposalId,
       agreed_amount: proposal.bid_amount,
       status: 'active',
-    } as any) as any);
+    });
 
-  if (contractError) throw contractError;
+  if (contractError) {
+    await supabase.from('projects').update({ status: 'open' }).eq('id', projectId);
+    await supabase.from('proposals').update({ status: 'pending' }).eq('id', proposalId);
+    throw contractError;
+  }
 
   // 3. Create notification for freelancer
   await createNotification(
@@ -252,41 +320,45 @@ export async function acceptProposal(proposalId: string, projectId: string) {
   );
 
   // Optionally reject other proposals
-  await (supabase
+  await supabase
     .from('proposals')
-    .update({ status: 'rejected' } as any)
+    .update({ status: 'rejected' })
     .eq('project_id', projectId)
     .neq('id', proposalId)
-    .eq('status', 'pending') as any);
+    .eq('status', 'pending');
 
   revalidatePath(`/dashboard/client/projects/${projectId}`);
   return { success: true };
 }
 
 export async function rejectProposal(proposalId: string, projectId: string) {
-  const supabase = createActionClient();
+  const supabase = createActionClient() as any;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('Not authenticated');
 
   // 1. Get proposal and project details
-  const { data: proposal, error: proposalError } = await (supabase
+  const { data: proposal, error: proposalError } = await supabase
     .from('proposals')
-    .select('*, projects(title)')
+    .select('*, projects(client_id, title)')
     .eq('id', proposalId)
-    .single() as any);
+    .single();
 
   if (proposalError || !proposal) {
     throw new Error('Proposal not found');
   }
 
+  if (proposal.project_id !== projectId || proposal.projects?.client_id !== user.id) {
+    throw new Error('Not authorized');
+  }
+
   const projectTitle = proposal.projects?.title || 'the project';
 
   // 2. Update status
-  const { error } = await (supabase
+  const { error } = await supabase
     .from('proposals')
-    .update({ status: 'rejected' } as any)
-    .eq('id', proposalId) as any);
+    .update({ status: 'rejected' })
+    .eq('id', proposalId);
 
   if (error) {
     console.error('Error rejecting proposal:', error);
